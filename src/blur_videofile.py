@@ -39,6 +39,8 @@ def get_parser():
     )
     parser.add_argument(
         '--log-images',
+        help='How much images should be logged in tensorboard for this video.',
+        metavar='<int>',
         default=20,
         type=int,
     )

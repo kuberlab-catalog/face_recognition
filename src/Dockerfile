@@ -42,7 +42,7 @@ RUN pip --no-cache-dir install jupyter_nbextensions_configurator
 RUN jupyter nbextensions_configurator enable --system
 WORKDIR /notebooks
 
-RUN mv /usr/bin/python3 /usr/bin/python
+RUN cp /usr/bin/python3 /usr/bin/python
 
 # IPython
 EXPOSE 8888
