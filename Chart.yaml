@@ -1,0 +1,17 @@
+Description: face-recognition
+Engine: gotpl
+Home: http://kuberlab.com
+#Icon: https://github.com/kuberlab-catalog/models/raw/master/research/object_detection/g3doc/img/oxford_pet.png
+Keywords:
+- kubernetes
+- tensorflow
+- face-recognition
+- template
+- kuberlab
+- kuberlabapptemplate
+Maintainers:
+- Email: nmahotkin@kuberlab.com
+  Name: Nikolay Mahotkin
+Name: face-recognition
+Version: 1.0.0
+Type: mlapp-v2

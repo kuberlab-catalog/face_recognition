@@ -1,0 +1,12 @@
+storage:
+ value: default
+ wizard:
+   name: "Storage Configuration"
+   kind: cluster_storage
+
+serving_port: 9000
+
+tf_serving: true
+
+packages:
+ - "git+https://github.com/kuberlab/python-mlboardclient.git"

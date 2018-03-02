@@ -1,0 +1,132 @@
+kind: MLApp
+metadata:
+  name: tensorflow
+spec:
+  package_manager: "pip3"
+  packages:
+    - names:
+      {{- range $i, $value := .packages }}
+      - "{{ $value }}"
+      {{- end }}
+      manager: "pip3"
+  tasks:
+  - name: evaluate
+    resources:
+    - name: worker
+      replicas: 1
+      restartPolicy: Never
+      maxRestartCount: 0
+      allowFail: true
+      images:
+        gpu: "kuberlab/face_recognition:latest-gpu"
+        cpu: "kuberlab/face_recognition:latest"
+      command: >-
+        export PYTHONPATH=$PYTHONPATH:$SRC_DIR;
+        python blur_videofile.py
+        --models-dir $DATA_DIR -f examples/hamilton_clip.mp4
+        -O $TRAINING_DIR/output.mp4
+        --train-dir $TRAINING_DIR/$BUILD_ID
+      workdir: "$SRC_DIR"
+      resources:
+        accelerators:
+          gpu: 1
+        requests:
+          cpu: 100m
+          memory: 2Gi
+        limits:
+          cpu: 2000m
+          memory: 16Gi
+      default_volume_mapping: true
+
+  uix:
+  - name: jupyter
+    displayName: Jupyter
+    images:
+      gpu: "kuberlab/face_recognition:latest-gpu"
+      cpu: "kuberlab/face_recognition:latest"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 64Mi
+      limits:
+        cpu: 1000m
+        memory: 4Gi
+    ports:
+    - port: 8888
+      targetPort: 8888
+      protocol: TCP
+      name: http
+    default_volume_mapping: true
+  - name: tensorboard
+    displayName: Tensorboard
+    command: "tensorboard --logdir=$TRAINING_DIR"
+    images:
+      cpu: "lsheiba/tensorflow-ls-devel"
+    ports:
+    - port: 6006
+      targetPort: 6006
+      protocol: TCP
+      name: http
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+    volumes:
+    - name: training
+  serving:
+  - name: serving
+    displayName: Serving
+    {{- if .tf_serving }}
+    images:
+      gpu: "kuberlab/tensorflow-serving:latest-gpu"
+      cpu: "kuberlab/tensorflow-serving:latest"
+    command: tensorflow_model_server
+    args: "--port={{ .serving_port }} --model_name=face-recognition --model_base_path=/model"
+    {{- else }}
+    workdir: "$SRC_DIR"
+    command: python hello.py
+    {{- end }}
+    resources:
+      accelerators:
+        gpu: 0
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 1000m
+        memory: 4Gi
+    ports:
+    - port: {{ .serving_port }}
+      targetPort: {{ .serving_port }}
+      protocol: TCP
+      name: http
+    default_volume_mapping: true
+  volumes:
+  - isLibDir: false
+    mountPath: /notebooks/training
+    name: training
+    clusterStorage: {{ .storage.value }}
+    subPath: training
+  - gitRepo:
+      repository: https://github.com/kuberlab-catalog/face_recognition
+    isLibDir: false
+    mountPath: /notebooks/src
+    name: src
+    subPath: face_recognition/src
+  - isLibDir: true
+    mountPath: /notebooks/lib
+    name: lib
+    clusterStorage: {{ .storage.value }}
+    subPath: lib
+  - isLibDir: false
+    mountPath: /notebooks
+    name: code
+    subPath: code
+    clusterStorage: {{ .storage.value }}
+  - isLibDir: false
+    mountPath: /notebooks/data
+    name: data
+    clusterStorage: {{ .storage.value }}

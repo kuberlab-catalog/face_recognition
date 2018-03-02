@@ -1,30 +1,64 @@
 # -*- coding: utf-8 -*-
+import os
+from os import path
 
 import PIL.Image
 import dlib
 import numpy as np
 
-try:
-    import face_recognition_models
-except:
-    print("Please install `face_recognition_models` with this command before using `face_recognition`:")
-    print()
-    print("pip install git+https://github.com/ageitgey/face_recognition_models")
-    quit()
+
+class ModelsLocation(object):
+    def __init__(self, base_dir):
+        self.base_dir = base_dir
+
+    def pose_predictor_model_location(self):
+        return path.join(self.base_dir, "shape_predictor_68_face_landmarks.dat")
+
+    def pose_predictor_five_point_model_location(self):
+        return path.join(self.base_dir, "shape_predictor_5_face_landmarks.dat")
+
+    def face_recognition_model_location(self):
+        return path.join(self.base_dir, "dlib_face_recognition_resnet_model_v1.dat")
+
+    def cnn_face_detector_model_location(self):
+        return path.join(self.base_dir, "mmod_human_face_detector.dat")
+
+
+face_recognition_models = ModelsLocation('')
+
+
+def set_face_recognition_models(base_dir):
+    global face_recognition_models
+    if not base_dir:
+        face_recognition_models = ModelsLocation(os.getenv('MODELS_DIR'))
+    else:
+        face_recognition_models = ModelsLocation(base_dir)
+    _init()
+
 
 face_detector = dlib.get_frontal_face_detector()
+pose_predictor_68_point = None
+pose_predictor_5_point = None
+cnn_face_detector = None
+face_encoder = None
 
-predictor_68_point_model = face_recognition_models.pose_predictor_model_location()
-pose_predictor_68_point = dlib.shape_predictor(predictor_68_point_model)
 
-predictor_5_point_model = face_recognition_models.pose_predictor_five_point_model_location()
-pose_predictor_5_point = dlib.shape_predictor(predictor_5_point_model)
+def _init():
+    global pose_predictor_68_point
+    global pose_predictor_5_point
+    global cnn_face_detector
+    global face_encoder
+    predictor_68_point_model = face_recognition_models.pose_predictor_model_location()
+    pose_predictor_68_point = dlib.shape_predictor(predictor_68_point_model)
 
-cnn_face_detection_model = face_recognition_models.cnn_face_detector_model_location()
-cnn_face_detector = dlib.cnn_face_detection_model_v1(cnn_face_detection_model)
+    predictor_5_point_model = face_recognition_models.pose_predictor_five_point_model_location()
+    pose_predictor_5_point = dlib.shape_predictor(predictor_5_point_model)
 
-face_recognition_model = face_recognition_models.face_recognition_model_location()
-face_encoder = dlib.face_recognition_model_v1(face_recognition_model)
+    cnn_face_detection_model = face_recognition_models.cnn_face_detector_model_location()
+    cnn_face_detector = dlib.cnn_face_detection_model_v1(cnn_face_detection_model)
+
+    face_recognition_model = face_recognition_models.face_recognition_model_location()
+    face_encoder = dlib.face_recognition_model_v1(face_recognition_model)
 
 
 def _rect_to_css(rect):
