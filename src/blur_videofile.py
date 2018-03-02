@@ -8,6 +8,7 @@ import tensorflow as tf
 
 
 logging = tf.logging
+logging.set_verbosity(logging.INFO)
 
 
 def get_parser():
@@ -74,12 +75,18 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
 
+    if not args.models_dir:
+        raise RuntimeError(
+            '--model-dir is required. Please point '
+            '--model-dir to directory where face recognition models are in.'
+        )
+
     face_recognition.set_face_recognition_models(args.models_dir)
 
     # Open videofile
     video = cv2.VideoCapture(args.file)
     fps = video.get(cv2.CAP_PROP_FPS)
-    length = video.get(cv2.CAP_PROP_FRAME_COUNT)
+    length = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
