@@ -7,6 +7,9 @@ import face_recognition
 import tensorflow as tf
 
 
+logging = tf.logging
+
+
 def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -86,13 +89,13 @@ def main():
     except:
         pass
 
-    print('Create video %sx%s with FPS %s' % (width, height, fps))
+    logging.info('Create video %sx%s with FPS %s' % (width, height, fps))
     fourcc = cv2.VideoWriter_fourcc(*'MP4V')
     output_movie = cv2.VideoWriter(args.output, fourcc, fps, (width, height))
     frame_number = 0
     log_every_frame = int(length / args.log_images)
 
-    print('Will log every %s frame to tensorboard.' % log_every_frame)
+    logging.info('Will log every %s frame to tensorboard.' % log_every_frame)
 
     while True:
         ret, frame = video.read()
@@ -129,7 +132,7 @@ def main():
             frame[top:bottom, left:right] = face_image
 
         # Write the resulting image to the output video file
-        print("Writing frame {} / {}".format(frame_number, length))
+        logging.info("Writing frame {} / {}".format(frame_number, length))
 
         if frame_number % log_every_frame == 0:
             # Convert frame into RGB again
