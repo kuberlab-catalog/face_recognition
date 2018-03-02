@@ -95,13 +95,13 @@ def main():
     while True:
         ret, frame = video.read()
 
-        # Convert frame from BGR to RGB
-        rgb_frame = frame[:, :, ::-1]
-        frame_number += 1
-
         # Quit when the input video file ends
         if not ret:
             break
+
+        # Convert frame from BGR to RGB
+        rgb_frame = frame[:, :, ::-1]
+        frame_number += 1
 
         # Resize frame of video to 1/4 size for faster face detection processing
         # small_frame = cv2.resize(rgb_frame, (0, 0), fx=0.25, fy=0.25)
@@ -130,7 +130,9 @@ def main():
         print("Writing frame {} / {}".format(frame_number, length))
 
         if frame_number % log_every_frame == 0:
-            log_to_tensorboard(frame, args.train_dir)
+            # Convert frame into RGB again
+            rgb_frame = frame[:, :, ::-1]
+            log_to_tensorboard(rgb_frame, args.train_dir)
 
         output_movie.write(frame)
 

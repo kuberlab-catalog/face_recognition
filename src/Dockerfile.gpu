@@ -32,7 +32,26 @@ RUN cd ~ && \
     cd  dlib/ && \
     python3 setup.py install --yes USE_AVX_INSTRUCTIONS
 
-RUN pip install numpy Pillow 'scipy>=0.17.0' 'Click>=6.0' opencv-python
+RUN mv /usr/bin/python3 /usr/bin/python
+RUN git clone -b '3.4.1' --single-branch https://github.com/opencv/opencv.git && cd opencv && \
+  mkdir build && cd build && \
+  cmake -D CMAKE_BUILD_TYPE=RELEASE \
+      -D CMAKE_INSTALL_PREFIX=$(python -c "import sys; print(sys.prefix)") \
+      -D PYTHON_EXECUTABLE=$(which python3.5) \
+      -D PYTHON_INCLUDE_DIR=$(python3.5 -c "from distutils.sysconfig import get_python_inc; print(get_python_inc())") \
+      -D PYTHON_PACKAGES_PATH=$(python3.5 -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())") \
+      -D WITH_CUDA=ON \
+      -D WITH_TBB=ON \
+      -D ENABLE_AVX=ON \
+      -D WITH_EIGEN=ON \
+      -D WITH_V4L=ON \
+      -D WITH_QT=ON \
+      -D WITH_OPENGL=ON \
+      -D BUILD_TESTS=OFF \
+      -D BUILD_PERF_TESTS=OFF .. && \
+  make && make install && cd .. && rm -rf opencv
+
+RUN pip install numpy Pillow 'scipy>=0.17.0' 'Click>=6.0'
 COPY jupyter_notebook_config_py3.py /root/.jupyter/jupyter_notebook_config.py
 
 RUN pip --no-cache-dir install jupyter_contrib_nbextensions
@@ -41,7 +60,6 @@ RUN pip --no-cache-dir install jupyter_nbextensions_configurator
 RUN jupyter nbextensions_configurator enable --system
 WORKDIR /notebooks
 
-RUN mv /usr/bin/python3 /usr/bin/python
 
 # IPython
 EXPOSE 8888
