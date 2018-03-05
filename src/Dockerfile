@@ -1,9 +1,8 @@
 # This is a sample Dockerfile you can modify to deploy your own app based on face_recognition
 
-FROM tensorflow/tensorflow:1.5.0-py3
+FROM kuberlab/tensorflow:cpu-36-1.5.0-full
 
-RUN apt-get -y update
-RUN apt-get install -y --fix-missing \
+RUN apt-get update && apt-get install -y --fix-missing \
     build-essential \
     cmake \
     gfortran \
@@ -13,12 +12,22 @@ RUN apt-get install -y --fix-missing \
     graphicsmagick \
     libgraphicsmagick1-dev \
     libatlas-dev \
+    libatlas-base-dev \
     libavcodec-dev \
     libavformat-dev \
     libgtk2.0-dev \
     libjpeg-dev \
     liblapack-dev \
     libswscale-dev \
+    libv4l-dev \
+    libhdf5-serial-dev \
+    libjasper-dev \
+    libavresample-dev \
+    libgphoto2-dev \
+    libdc1394-22 \
+    ffmpeg \
+    libtbb2 \
+    libtbb-dev \
     pkg-config \
     python3-dev \
     python3-numpy \
@@ -32,22 +41,22 @@ RUN cd ~ && \
     cd  dlib/ && \
     python3 setup.py install --yes USE_AVX_INSTRUCTIONS
 
-RUN pip install numpy Pillow 'scipy>=0.17.0' 'Click>=6.0' opencv-python
+RUN pip install -U numpy Pillow 'scipy>=0.17.0' 'Click>=6.0' opencv-python
 
-COPY jupyter_notebook_config_py3.py /root/.jupyter/jupyter_notebook_config.py
-
-RUN pip --no-cache-dir install jupyter_contrib_nbextensions
-RUN jupyter contrib nbextension install --system
-RUN pip --no-cache-dir install jupyter_nbextensions_configurator
-RUN jupyter nbextensions_configurator enable --system
-WORKDIR /notebooks
-
-RUN cp /usr/bin/python3 /usr/bin/python
-
-# IPython
-EXPOSE 8888
-
-CMD ["/run_jupyter.sh","--allow-root"]
+#COPY jupyter_notebook_config_py3.py /root/.jupyter/jupyter_notebook_config.py
+#
+#RUN pip --no-cache-dir install jupyter_contrib_nbextensions
+#RUN jupyter contrib nbextension install --system
+#RUN pip --no-cache-dir install jupyter_nbextensions_configurator
+#RUN jupyter nbextensions_configurator enable --system
+#WORKDIR /notebooks
+#
+#RUN cp /usr/bin/python3 /usr/bin/python
+#
+## IPython
+#EXPOSE 8888
+#
+#CMD ["/run_jupyter.sh","--allow-root"]
 
 # The rest of this file just runs an example script.
 
