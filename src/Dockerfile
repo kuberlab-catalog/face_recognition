@@ -42,34 +42,3 @@ RUN cd ~ && \
     python3 setup.py install --yes USE_AVX_INSTRUCTIONS
 
 RUN pip install -U numpy Pillow 'scipy>=0.17.0' 'Click>=6.0' opencv-python
-
-#COPY jupyter_notebook_config_py3.py /root/.jupyter/jupyter_notebook_config.py
-#
-#RUN pip --no-cache-dir install jupyter_contrib_nbextensions
-#RUN jupyter contrib nbextension install --system
-#RUN pip --no-cache-dir install jupyter_nbextensions_configurator
-#RUN jupyter nbextensions_configurator enable --system
-#WORKDIR /notebooks
-#
-#RUN cp /usr/bin/python3 /usr/bin/python
-#
-## IPython
-#EXPOSE 8888
-#
-#CMD ["/run_jupyter.sh","--allow-root"]
-
-# The rest of this file just runs an example script.
-
-# If you wanted to use this Dockerfile to run your own app instead, maybe you would do this:
-# COPY . /root/your_app_or_whatever
-# RUN cd /root/your_app_or_whatever && \
-#     pip3 install -r requirements.txt
-# RUN whatever_command_you_run_to_start_your_app
-
-#COPY . /root/face_recognition
-#RUN cd /root/face_recognition && \
-#    pip3 install -r requirements.txt && \
-#    python3 setup.py install
-#
-#CMD cd /root/face_recognition/examples && \
-#    python3 recognize_faces_in_pictures.py
