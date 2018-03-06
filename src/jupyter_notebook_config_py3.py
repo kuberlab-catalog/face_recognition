@@ -16,7 +16,7 @@ import os
 from IPython.lib import passwd
 
 c.NotebookApp.token = ''
-c.NotebookApp.allow_origin= '*'
+c.NotebookApp.allow_origin = '*'
 c.NotebookApp.ip = '*'
 c.NotebookApp.port = int(os.getenv('PORT', 8888))
 c.NotebookApp.open_browser = False
