@@ -136,7 +136,7 @@ def main():
             face_image = frame[top:bottom, left:right]
 
             # Blur the face image
-            face_image = cv2.GaussianBlur(face_image, (60, 60), 30)
+            face_image = cv2.GaussianBlur(face_image, (61, 61), 30)
 
             # Put the blurred face region back into the frame image
             frame[top:bottom, left:right] = face_image
