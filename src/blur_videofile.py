@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import os
 
 import cv2
@@ -81,6 +82,8 @@ def main():
             '--model-dir to directory where face recognition models are in.'
         )
 
+    logging.info('Start video processing: %s', datetime.datetime.now())
+
     face_recognition.set_face_recognition_models(args.models_dir)
 
     # Open videofile
@@ -144,6 +147,7 @@ def main():
         if frame_number % log_every_frame == 0:
             # Convert frame into RGB again
             rgb_frame = frame[:, :, ::-1]
+            logging.info("Log frame %s to tensorboard")
             log_to_tensorboard(rgb_frame, args.train_dir)
 
         output_movie.write(frame)
@@ -151,6 +155,8 @@ def main():
     # All done!
     video.release()
     cv2.destroyAllWindows()
+
+    logging.info('End video processing: %s', datetime.datetime.now())
 
 
 if __name__ == '__main__':

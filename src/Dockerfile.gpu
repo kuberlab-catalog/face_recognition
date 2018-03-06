@@ -71,7 +71,7 @@ RUN cd / && wget https://github.com/opencv/opencv/archive/3.4.1.zip -O opencv.zi
   cmake -D CMAKE_BUILD_TYPE=RELEASE \
     -D CMAKE_INSTALL_PREFIX=/usr/local \
     -D WITH_TBB=ON \
-    -D WITH_FFMPEG=OFF \
+    #-D WITH_FFMPEG=OFF \
     -D WITH_V4L=ON \
     -D WITH_QT=OFF \
     -D WITH_OPENGL=ON \
@@ -86,6 +86,7 @@ RUN cd / && wget https://github.com/opencv/opencv/archive/3.4.1.zip -O opencv.zi
   cp /usr/local/lib/python3.6/site-packages/cv2.cpython-36m-x86_64-linux-gnu.so /opt/conda/lib/python3.6/site-packages/ && \
   cd / && rm -rf opencv
 
+RUN pip install 'tensorflow==1.4.0'
 #RUN cp /usr/bin/python3 /usr/bin/python
 #COPY jupyter_notebook_config_py3.py /root/.jupyter/jupyter_notebook_config.py
 #
