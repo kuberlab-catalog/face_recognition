@@ -205,7 +205,7 @@ def built_with_cuda():
     lines = b.split('\n')
 
     for l in lines:
-        if ' NVIDIA CUDA ' in l:
+        if ' NVIDIA CUDA' in l:
             return l.split(':')[-1].strip().startswith('YES')
 
     return False
