@@ -79,7 +79,7 @@ def log_to_tensorboard(frame, log_dir):
         # Run
         summary = sess.run(summary_op)
         # Write summary
-        writer = tf.summary.FileWriter(log_dir, flush_secs=30)
+        writer = tf.summary.FileWriter(log_dir)
         writer.add_summary(summary)
         writer.close()
 
