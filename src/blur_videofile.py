@@ -1,6 +1,12 @@
 import argparse
 import datetime
 import os
+from os import path
+import shlex
+import shutil
+import subprocess
+import time
+import tempfile
 
 import cv2
 import numpy as np
@@ -49,6 +55,12 @@ def get_parser():
         default=20,
         type=int,
     )
+    parser.add_argument(
+        '--sound',
+        help='include sound in the output video.',
+        default=False,
+        action='store_true'
+    )
 
     return parser
 
@@ -82,6 +94,12 @@ def main():
             '--model-dir to directory where face recognition models are in.'
         )
 
+    if not args.file:
+        raise RuntimeError(
+            '--file is required. Please point '
+            '--file to an input video file.'
+        )
+
     logging.info('Start video processing: %s', datetime.datetime.now())
 
     face_recognition.set_face_recognition_models(args.models_dir)
@@ -99,13 +117,29 @@ def main():
     except:
         pass
 
-    logging.info('Create video %sx%s with FPS %s' % (width, height, fps))
-    fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+    # Read codec information from input video.
+    ex = int(video.get(cv2.CAP_PROP_FOURCC))
+    codec = (
+        chr(ex & 0xFF) +
+        chr((ex & 0xFF00) >> 8) +
+        chr((ex & 0xFF0000) >> 16) +
+        chr((ex & 0xFF000000) >> 24)
+    )
+
+    cuda = built_with_cuda()
+    if not cuda:
+        codec = 'MP4V'
+
+    logging.info('Create video %sx%s with FPS %s and CODEC=%s' % (width, height, fps, codec))
+    fourcc = cv2.VideoWriter_fourcc(*codec)
     output_movie = cv2.VideoWriter(args.output, fourcc, fps, (width, height))
     frame_number = 0
-    log_every_frame = int(length / args.log_images)
 
-    logging.info('Will log every %s frame to tensorboard.' % log_every_frame)
+    if args.log_images != 0:
+        log_every_frame = int(length / args.log_images)
+        logging.info('Will log every %s frame to tensorboard.' % log_every_frame)
+    else:
+        log_every_frame = 1000000000
 
     while True:
         ret, frame = video.read()
@@ -154,9 +188,95 @@ def main():
 
     # All done!
     video.release()
+    output_movie.release()
     cv2.destroyAllWindows()
 
     logging.info('End video processing: %s', datetime.datetime.now())
+
+    if args.sound:
+        time.sleep(0.2)
+        logging.info('Start merge audio: %s', datetime.datetime.now())
+        merge_audio_with(args.file, args.output)
+        logging.info('End merge audio: %s', datetime.datetime.now())
+
+
+def built_with_cuda():
+    b = cv2.getBuildInformation()
+    lines = b.split('\n')
+
+    for l in lines:
+        if ' NVIDIA CUDA ' in l:
+            return l.split(':')[-1].strip() == 'YES'
+
+    return False
+
+
+def merge_audio_with(original_video_file, target_video_file):
+    dirname = tempfile.gettempdir()
+    audio_file = path.join(dirname, 'audio')
+
+    # Get audio codec
+    # cmd = (
+    #     'ffprobe -show_streams -pretty %s 2>/dev/null | '
+    #     'grep codec_type=audio -B 5 | grep codec_name | cut -d "=" -f 2'
+    #     % original_video_file
+    # )
+    # codec_name = subprocess.check_output(["bash", "-c", cmd]).decode()
+    # codec_name = codec_name.strip('\n ')
+    # audio_file += ".%s" % codec_name
+    audio_file += ".%s" % "mp3"
+
+    # Something wrong with original audio codec; use mp3
+    # -vn -acodec copy file.<codec-name>
+    cmd = 'ffmpeg -y -i %s -vn %s' % (original_video_file, audio_file)
+    code = subprocess.call(shlex.split(cmd))
+    if code != 0:
+        raise RuntimeError("Failed run %s: exit code %s" % (cmd, code))
+
+    # Get video offset
+    cmd = (
+        'ffprobe -show_streams -pretty %s 2>/dev/null | '
+        'grep codec_type=video -A 28 | grep start_time | cut -d "=" -f 2'
+        % original_video_file
+    )
+    video_offset = subprocess.check_output(["bash", "-c", cmd]).decode()
+    video_offset = video_offset.strip('\n ')
+
+    # Get audio offset
+    cmd = (
+        'ffprobe -show_streams -pretty %s 2>/dev/null | '
+        'grep codec_type=audio -A 28 | grep start_time | cut -d "=" -f 2'
+        % original_video_file
+    )
+    audio_offset = subprocess.check_output(["bash", "-c", cmd]).decode()
+    audio_offset = audio_offset.strip('\n ')
+
+    dirname = tempfile.gettempdir()
+    video_file = path.join(dirname, 'video')
+
+    # Get video codec
+    cmd = (
+        'ffprobe -show_streams -pretty %s 2>/dev/null | '
+        'grep codec_type=video -B 5 | grep codec_name | cut -d "=" -f 2'
+        % original_video_file
+    )
+    codec_name = subprocess.check_output(["bash", "-c", cmd]).decode()
+    codec_name = codec_name.strip('\n ')
+    video_file += ".%s" % codec_name
+
+    shutil.copyfile(target_video_file, video_file)
+    # subprocess.call(["cp", target_video_file, video_file])
+    time.sleep(0.2)
+
+    cmd = (
+        'ffmpeg -y -itsoffset %s -i %s '
+        '-itsoffset %s -i %s -c copy %s' %
+        (video_offset, video_file, audio_offset, audio_file, target_video_file)
+    )
+
+    code = subprocess.call(shlex.split(cmd))
+    if code != 0:
+        raise RuntimeError("Saving video with sound failed: exit code %s" % code)
 
 
 if __name__ == '__main__':
