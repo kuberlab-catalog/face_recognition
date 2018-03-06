@@ -147,7 +147,7 @@ def main():
         if frame_number % log_every_frame == 0:
             # Convert frame into RGB again
             rgb_frame = frame[:, :, ::-1]
-            logging.info("Log frame %s to tensorboard")
+            logging.info("Log frame %s to tensorboard", frame_number)
             log_to_tensorboard(rgb_frame, args.train_dir)
 
         output_movie.write(frame)
