@@ -90,13 +90,13 @@ def main():
 
     if not args.models_dir:
         raise RuntimeError(
-            '--model-dir is required. Please point '
+            '--model-dir required. Please point '
             '--model-dir to directory where face recognition models are in.'
         )
 
     if not args.file:
         raise RuntimeError(
-            '--file is required. Please point '
+            '--file required. Please point '
             '--file to an input video file.'
         )
 
